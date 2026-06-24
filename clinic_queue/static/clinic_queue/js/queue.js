@@ -1,7 +1,9 @@
 (function () {
   const page = window.QueuePage || {};
   let source = null;
+  let pollTimer = null;
   let myToken = page.token || null;
+  let lastVersion = -1;
 
   function $(id) {
     return document.getElementById(id);
@@ -28,7 +30,33 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body || {}),
     });
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
     return response.json();
+  }
+
+  function applyState(state) {
+    if (!state) return;
+    lastVersion = state.version;
+    if (page.mode === "reception") renderReception(state);
+    if (page.mode === "waiting_room") renderWaitingRoom(state);
+    if (page.mode === "get_token") renderGetToken(state);
+    if (page.mode === "track") {
+      $("your-token").textContent = `#${page.token}`;
+      renderTrackedPatient(state);
+      $("mini-current").textContent = state.current_token ? `#${state.current_token}` : "—";
+    }
+  }
+
+  async function refreshState() {
+    const params = myToken ? `?token=${myToken}` : "";
+    const response = await fetch(`/api/state/${params}`.replace("/?", "?"));
+    if (!response.ok) return;
+    const state = await response.json();
+    if (state.version !== lastVersion) {
+      applyState(state);
+    }
   }
 
   function renderReception(state) {
@@ -45,7 +73,7 @@
 
     const list = $("queue-list");
     list.innerHTML = "";
-    const items = [...state.active_queue, ...state.recent_completed].sort(
+    const items = [...(state.active_queue || []), ...(state.recent_completed || [])].sort(
       (a, b) => a.token_number - b.token_number
     );
 
@@ -77,12 +105,14 @@
 
     list.querySelectorAll("[data-skip]").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        await postJson(`/api/patients/${btn.dataset.skip}/skip/`);
+        const result = await postJson(`/api/patients/${btn.dataset.skip}/skip/`);
+        applyState(result.state);
       });
     });
     list.querySelectorAll("[data-recall]").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        await postJson(`/api/patients/${btn.dataset.recall}/recall/`);
+        const result = await postJson(`/api/patients/${btn.dataset.recall}/recall/`);
+        applyState(result.state);
       });
     });
   }
@@ -161,31 +191,29 @@
     }
   }
 
-  function applyState(state) {
-    if (page.mode === "reception") renderReception(state);
-    if (page.mode === "waiting_room") renderWaitingRoom(state);
-    if (page.mode === "get_token") renderGetToken(state);
-    if (page.mode === "track") {
-      $("your-token").textContent = `#${page.token}`;
-      renderTrackedPatient(state);
-      $("mini-current").textContent = state.current_token ? `#${state.current_token}` : "—";
+  function connectStream() {
+    const params = myToken ? `?token=${myToken}` : "";
+    try {
+      source = new EventSource(`/api/stream${params}`);
+      source.onmessage = (event) => {
+        try {
+          applyState(JSON.parse(event.data));
+        } catch (err) {
+          console.error("Bad queue state", err);
+        }
+      };
+      source.onerror = () => {
+        if (source) source.close();
+        source = null;
+      };
+    } catch (err) {
+      console.warn("SSE unavailable, using polling only");
     }
   }
 
-  function connectStream() {
-    const params = myToken ? `?token=${myToken}` : "";
-    source = new EventSource(`/api/stream${params}`);
-    source.onmessage = (event) => {
-      try {
-        applyState(JSON.parse(event.data));
-      } catch (err) {
-        console.error("Bad queue state", err);
-      }
-    };
-    source.onerror = () => {
-      source.close();
-      setTimeout(connectStream, 2000);
-    };
+  function startPolling() {
+    refreshState();
+    pollTimer = setInterval(refreshState, 2000);
   }
 
   function bindReception() {
@@ -193,6 +221,7 @@
       event.preventDefault();
       const name = $("patient-name").value.trim();
       const result = await postJson("/api/patients/", { name });
+      applyState(result.state);
       $("patient-name").value = "";
       $("patient-name").focus();
 
@@ -202,18 +231,21 @@
     });
 
     $("call-next-btn").addEventListener("click", async () => {
-      await postJson("/api/call-next/");
+      const result = await postJson("/api/call-next/");
+      applyState(result.state);
     });
 
     $("save-avg-btn").addEventListener("click", async () => {
-      await postJson("/api/settings/", {
+      const result = await postJson("/api/settings/", {
         avg_consultation_minutes: Number($("avg-minutes").value),
       });
+      applyState(result.state);
     });
 
     $("reset-day-btn").addEventListener("click", async () => {
       if (confirm("Clear today's entire queue?")) {
-        await postJson("/api/reset-day/");
+        const result = await postJson("/api/reset-day/");
+        applyState(result.state);
       }
     });
   }
@@ -226,6 +258,7 @@
 
       const result = await postJson("/api/patients/", { name });
       myToken = result.patient.token_number;
+      applyState(result.state);
       $("token-form-section").classList.add("hidden");
       $("token-result").classList.remove("hidden");
       $("your-token").textContent = `#${myToken}`;
@@ -250,5 +283,6 @@
     if (page.mode === "get_token") bindGetToken();
     if (page.mode === "track") myToken = page.token;
     connectStream();
+    startPolling();
   });
 })();
