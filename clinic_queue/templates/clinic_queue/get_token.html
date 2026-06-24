@@ -1,0 +1,55 @@
+{% extends "clinic_queue/base.html" %}
+
+{% block title %}Get a Token — Clinic Queue{% endblock %}
+{% block body_class %}page-get-token{% endblock %}
+
+{% block content %}
+<main class="token-layout">
+  <header class="token-header">
+    <p class="eyebrow" id="clinic-name">Neighbourhood Clinic</p>
+    <h1>Get your token</h1>
+    <p class="subtitle">Join the queue from your phone. No app download.</p>
+  </header>
+
+  <section id="token-form-section" class="panel token-form-panel">
+    <form id="get-token-form" class="token-form">
+      <label for="patient-name">Your name</label>
+      <input id="patient-name" type="text" placeholder="e.g. Priya Sharma" required autocomplete="name">
+      <button type="submit" class="btn btn-primary btn-large">Get my token</button>
+    </form>
+  </section>
+
+  <section id="token-result" class="panel token-result hidden">
+    <p class="label">Your token</p>
+    <div id="your-token" class="hero-token token-green">—</div>
+    <p id="your-name" class="your-name"></p>
+
+    <div class="your-stats">
+      <div class="stat-card">
+        <span class="stat-card-value" id="your-ahead">0</span>
+        <span class="stat-card-label">Patients ahead</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-value" id="your-wait">—</span>
+        <span class="stat-card-label">Estimated wait</span>
+      </div>
+    </div>
+
+    <p id="your-status" class="status-line">You are in the queue.</p>
+    <a id="track-link" class="btn btn-secondary btn-large" href="#">Save this page</a>
+    <button id="new-token-btn" class="btn btn-ghost">Get another token</button>
+  </section>
+
+  <section class="panel mini-display">
+    <p class="label">Now serving</p>
+    <div class="mini-row">
+      <span id="mini-current" class="mini-token">—</span>
+      <span id="mini-waiting" class="mini-meta">0 waiting</span>
+    </div>
+  </section>
+</main>
+
+<script>
+  window.QueuePage = { mode: "get_token" };
+</script>
+{% endblock %}

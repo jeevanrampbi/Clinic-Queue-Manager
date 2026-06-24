@@ -1,0 +1,36 @@
+{% extends "clinic_queue/base.html" %}
+
+{% block title %}Clinic Queue Manager{% endblock %}
+
+{% block content %}
+<main class="landing">
+  <div class="landing-glow"></div>
+  <header class="landing-header">
+    <p class="eyebrow">Neighbourhood Clinic</p>
+    <h1>Live Digital Queue</h1>
+    <p class="subtitle">Patients see their place in line on their phone. Reception controls everything from one screen.</p>
+  </header>
+
+  <section class="card-grid">
+    <a class="card card-reception" href="{% url 'reception' %}">
+      <span class="card-icon">🖥️</span>
+      <h2>Reception Desk</h2>
+      <p>Add patients, call the next token, set consultation pace.</p>
+    </a>
+    <a class="card card-waiting" href="{% url 'waiting_room' %}">
+      <span class="card-icon">📺</span>
+      <h2>Waiting Room Display</h2>
+      <p>Big-screen view of who is being seen and who is next.</p>
+    </a>
+    <a class="card card-token" href="{% url 'get_token' %}">
+      <span class="card-icon">📱</span>
+      <h2>Get a Token</h2>
+      <p>Patients join the queue from their phone — no app needed.</p>
+    </a>
+  </section>
+
+  <footer class="landing-footer">
+    <p>Open reception on the desk PC. Share the <strong>Get a Token</strong> link with patients.</p>
+  </footer>
+</main>
+{% endblock %}

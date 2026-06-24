@@ -1,0 +1,62 @@
+{% extends "clinic_queue/base.html" %}
+
+{% block title %}Reception — Clinic Queue{% endblock %}
+{% block body_class %}page-reception{% endblock %}
+
+{% block content %}
+<main class="reception-layout">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Reception Desk</p>
+      <h1 id="clinic-name">Clinic Queue</h1>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="{% url 'waiting_room' %}" target="_blank">Open display</a>
+      <a class="btn btn-ghost" href="{% url 'home' %}">Home</a>
+    </div>
+  </header>
+
+  <section class="reception-grid">
+    <div class="panel panel-quick-add">
+      <h2>Quick add patient</h2>
+      <p class="hint">Type a name and press Enter — token assigned instantly.</p>
+      <form id="add-patient-form" class="quick-form">
+        <input id="patient-name" type="text" placeholder="Patient name (optional)" autocomplete="off" autofocus>
+        <button type="submit" class="btn btn-primary">Add &amp; assign token</button>
+      </form>
+      <div id="last-added" class="last-added hidden"></div>
+    </div>
+
+    <div class="panel panel-now-serving">
+      <p class="label">Now serving</p>
+      <div id="current-token" class="hero-token">—</div>
+      <p id="current-name" class="current-name">No patient in consultation</p>
+      <button id="call-next-btn" class="btn btn-call">Call next token</button>
+      <p class="hint">Completes the current visit and calls the next waiting patient.</p>
+    </div>
+
+    <div class="panel panel-settings">
+      <h2>Consultation pace</h2>
+      <label for="avg-minutes">Average minutes per visit</label>
+      <div class="settings-row">
+        <input id="avg-minutes" type="number" min="1" max="60" value="10">
+        <button id="save-avg-btn" class="btn btn-secondary">Save</button>
+      </div>
+      <p id="wait-source" class="wait-source">Wait estimates use configured average until 2+ visits are completed today.</p>
+      <button id="reset-day-btn" class="btn btn-danger-outline">Reset today's queue</button>
+    </div>
+  </section>
+
+  <section class="panel panel-queue">
+    <div class="panel-head">
+      <h2>Today's queue</h2>
+      <span id="waiting-count" class="badge">0 waiting</span>
+    </div>
+    <div id="queue-list" class="queue-list"></div>
+  </section>
+</main>
+
+<script>
+  window.QueuePage = { mode: "reception" };
+</script>
+{% endblock %}

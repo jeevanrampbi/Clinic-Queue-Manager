@@ -1,0 +1,51 @@
+{% extends "clinic_queue/base.html" %}
+
+{% block title %}Waiting Room — Clinic Queue{% endblock %}
+{% block body_class %}page-waiting{% endblock %}
+
+{% block content %}
+<main class="waiting-layout">
+  <header class="waiting-header">
+    <p class="eyebrow" id="clinic-name">Neighbourhood Clinic</p>
+    <h1>Waiting Room</h1>
+    <p id="queue-date" class="queue-date"></p>
+  </header>
+
+  <section class="waiting-hero">
+    <div class="now-serving-block">
+      <p class="label">Now being seen</p>
+      <div id="current-token" class="display-token">—</div>
+      <p id="current-name" class="display-name">Please wait</p>
+    </div>
+
+    <div class="stats-block">
+      <div class="stat">
+        <span class="stat-value" id="waiting-count">0</span>
+        <span class="stat-label">In queue</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="estimated-wait">—</span>
+        <span class="stat-label">Est. wait (next)</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="avg-minutes">10</span>
+        <span class="stat-label">Min / visit</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="up-next">
+    <h2>Up next</h2>
+    <div id="next-tokens" class="token-chips"></div>
+  </section>
+
+  <footer class="waiting-footer">
+    <p>Get your token on your phone: <a href="{% url 'get_token' %}">/get-token/</a></p>
+    <p id="wait-footnote" class="footnote"></p>
+  </footer>
+</main>
+
+<script>
+  window.QueuePage = { mode: "waiting_room" };
+</script>
+{% endblock %}

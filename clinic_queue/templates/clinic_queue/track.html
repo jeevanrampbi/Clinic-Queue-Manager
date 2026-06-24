@@ -1,0 +1,43 @@
+{% extends "clinic_queue/base.html" %}
+
+{% block title %}Token #{{ token_number }} — Clinic Queue{% endblock %}
+{% block body_class %}page-track{% endblock %}
+
+{% block content %}
+<main class="track-layout">
+  <header class="token-header">
+    <p class="eyebrow" id="clinic-name">Neighbourhood Clinic</p>
+    <h1>Your queue status</h1>
+  </header>
+
+  <section class="panel token-result">
+    <p class="label">Your token</p>
+    <div id="your-token" class="hero-token token-green">{{ token_number }}</div>
+    <p id="your-name" class="your-name"></p>
+
+    <div class="your-stats">
+      <div class="stat-card">
+        <span class="stat-card-value" id="your-ahead">—</span>
+        <span class="stat-card-label">Patients ahead</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-value" id="your-wait">—</span>
+        <span class="stat-card-label">Estimated wait</span>
+      </div>
+    </div>
+
+    <p id="your-status" class="status-line status-waiting">Checking queue…</p>
+
+    <div class="now-serving-inline">
+      <span>Now serving:</span>
+      <strong id="mini-current">—</strong>
+    </div>
+  </section>
+
+  <a class="btn btn-ghost" href="{% url 'get_token' %}">Get a new token</a>
+</main>
+
+<script>
+  window.QueuePage = { mode: "track", token: {{ token_number }} };
+</script>
+{% endblock %}
